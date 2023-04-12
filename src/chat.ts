@@ -24,7 +24,9 @@ export class Chat {
     and also please find potential other issues in the changed code. 
     Only provide feedback from the changed code in the patch file. 
     Only leave feedback related to the description, do not attempt to describe the task, 
-    and do not do any disclaimers.`;
+    and do not do any disclaimers.
+    Please provide feedback specific to a code portion by specifying the file name, 
+    as well as the exact start and end line number where the feedback occurs`;
   };
 
   public codeReview = async (description: string, patch: string) => {
