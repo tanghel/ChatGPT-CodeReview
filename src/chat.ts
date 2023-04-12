@@ -14,22 +14,20 @@ export class Chat {
   }
 
   private generatePrompt = (description: string, patch: string) => {
-    return `Please review a pull request with the following description:
+    return `
+    ###
+    Please review a pull request with the following description:
     ${description}
+    ###
     
     code:
     ${patch}
 
-    Please review whether the changes respect the description of the pull request, 
-    and also please find potential other issues in the changed code. 
-    Only provide feedback from the changed code in the patch file. 
-    Only leave feedback related to the description, do not attempt to describe the task, 
-    and do not do any disclaimers.
-    Please provide feedback specific to a code portion by specifying:
-    - first the file full path, followed by a semicolon
-    - then, on the same line, the exact start and end line number where the feedback occurs with dashes between them
-    - then the feedback itself after another semicolon
-    Please use bullet points for every feedback item.
+    ###
+    Please provide one paragraph describing whether the changes respect the description of the pull request.
+    If you find any changes that should be made to the source code, provide them in the format of a json array with the following attributes: filePath, startLine, endLine, description.
+    Please take an extra careful look at the called function names as well as the variables, so that they don't contain typos and so that they make sense
+    ###
     `;
   };
 
