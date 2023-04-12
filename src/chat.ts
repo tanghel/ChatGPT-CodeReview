@@ -27,6 +27,7 @@ export class Chat {
     and do not do any disclaimers.
     Please provide feedback specific to a code portion by specifying the file path, 
     as well as the exact start and end line number where the feedback occurs.
+    Provide only feedback where changes should be made.
     Please use bullet points for every feedback item`;
   };
 
