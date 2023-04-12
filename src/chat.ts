@@ -26,9 +26,9 @@ export class Chat {
     Only leave feedback related to the description, do not attempt to describe the task, 
     and do not do any disclaimers.
     Please provide feedback specific to a code portion by specifying:
-    - first the file full path 
-    - then the exact start and end line number where the feedback occurs
-    - then the feedback itself
+    - first the file full path, followed by a semicolon
+    - then, on the same line, the exact start and end line number where the feedback occurs with dashes between them
+    - then the feedback itself after another semicolon
     Please use bullet points for every feedback item.
     `;
   };
