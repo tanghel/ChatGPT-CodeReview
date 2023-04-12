@@ -6,7 +6,7 @@ export class Chat {
     this.chatAPI = new ChatGPTAPI({
       apiKey: apikey,
       completionParams: {
-        model: process.env.MODEL || 'code-davinci-edit-001',
+        model: process.env.MODEL || 'gpt-3.5-turbo',
         temperature: +(process.env.temperature || 0) || 1,
         top_p: +(process.env.top_p || 0) || 1,
       },
@@ -25,7 +25,7 @@ export class Chat {
     Only provide feedback from the changed code in the patch file. 
     Only leave feedback related to the description, do not attempt to describe the task, 
     and do not do any disclaimers.
-    Please provide feedback specific to a code portion by specifying the file name, 
+    Please provide feedback specific to a code portion by specifying the file path, 
     as well as the exact start and end line number where the feedback occurs.
     Please use bullet points for every feedback item`;
   };
@@ -43,6 +43,6 @@ export class Chat {
     const res = await this.chatAPI.sendMessage(prompt);
 
     console.timeEnd('code-review cost');
-    return 'Review from ChatGPT: ' + res.text;
+    return 'Review from ChatGPT: \n' + res.text;
   };
 }

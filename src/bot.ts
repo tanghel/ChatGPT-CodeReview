@@ -105,7 +105,7 @@ export const robot = (app: Probot) => {
           continue;
         }
 
-        patches += `${file.filename}\n ${patch}\n`;
+        patches += `file path: ${file.filename}\n ${patch}\n`;
       }
 
       const res = await chat?.codeReview(description, patches);
