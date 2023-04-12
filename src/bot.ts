@@ -90,6 +90,8 @@ export const robot = (app: Probot) => {
 
       console.time('gpt cost');
 
+      const description = pull_request.body || '';
+
       for (let i = 0; i < changedFiles.length; i++) {
         const file = changedFiles[i];
         const patch = file.patch || '';
@@ -101,7 +103,7 @@ export const robot = (app: Probot) => {
         if (!patch || patch.length > MAX_PATCH_COUNT) {
           continue;
         }
-        const res = await chat?.codeReview(patch);
+        const res = await chat?.codeReview(description, patch);
 
         if (!!res) {
           await context.octokit.pulls.createReviewComment({

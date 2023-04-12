@@ -13,23 +13,27 @@ export class Chat {
     });
   }
 
-  private generatePrompt = (patch: string) => {
-    const answerLanguage = process.env.LANGUAGE
-      ? `Answer me in ${process.env.LANGUAGE},`
-      : '';
-
-    return `Below is the code patch, please help me do a brief code review, ${answerLanguage} if any bug risk and improvement suggestion are welcome
+  private generatePrompt = (description: string, patch: string) => {
+    return `Please review a pull request with the following description:
+    ${description}
+    
+    code:
     ${patch}
-    `;
+
+    Please review whether the changes respect the description of the pull request, 
+    and also please find potential other issues in the changed code. 
+    Only provide feedback from the changed code in the patch file. 
+    Only leave feedback related to the description, do not attempt to describe the task, 
+    and do not do any disclaimers.`;
   };
 
-  public codeReview = async (patch: string) => {
+  public codeReview = async (description: string, patch: string) => {
     if (!patch) {
       return '';
     }
 
     console.time('code-review cost');
-    const prompt = this.generatePrompt(patch);
+    const prompt = this.generatePrompt(description, patch);
 
     const res = await this.chatAPI.sendMessage(prompt);
 
