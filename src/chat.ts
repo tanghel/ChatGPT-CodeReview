@@ -35,6 +35,8 @@ export class Chat {
     console.time('code-review cost');
     const prompt = this.generatePrompt(description, patch);
 
+    console.info('prompt', prompt);
+
     const res = await this.chatAPI.sendMessage(prompt);
 
     console.timeEnd('code-review cost');
