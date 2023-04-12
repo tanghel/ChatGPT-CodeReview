@@ -25,9 +25,12 @@ export class Chat {
     Only provide feedback from the changed code in the patch file. 
     Only leave feedback related to the description, do not attempt to describe the task, 
     and do not do any disclaimers.
-    Please provide feedback specific to a code portion by specifying the file name, 
-    as well as the exact start and end line number where the feedback occurs.
-    Please use bullet points for every feedback item`;
+    Please provide feedback specific to a code portion by specifying:
+    - first the file full path 
+    - then the exact start and end line number where the feedback occurs
+    - then the feedback itself
+    Please use bullet points for every feedback item.
+    `;
   };
 
   public codeReview = async (description: string, patch: string) => {
