@@ -15,20 +15,19 @@ export class Chat {
 
   private generatePrompt = (description: string, patch: string) => {
     return `
-    Please review a pull request with the following description:
+    Please review a pull request file with the following description:
     ${description}
 
     code:
     ${patch}
 
-    Please provide one paragraph describing whether the changes respect the description of the pull request.
-    If you find any changes that should be made to the source code, provide them in the format of a json array with the following attributes: filePath, startLine, endLine, description.
+    If you find any changes that should be made to the source code, provide them in the format of a json array with the following attributes: startLine, endLine, description.
     `;
   };
 
-  public codeReview = async (description: string, patch: string) => {
+  public codeReview = async (description: string, patch: string): Promise<{ startLine: number, endLine: number, description: string }[]> => {
     if (!patch) {
-      return '';
+      return [];
     }
 
     console.time('code-review cost');
@@ -39,6 +38,17 @@ export class Chat {
     const res = await this.chatAPI.sendMessage(prompt);
 
     console.timeEnd('code-review cost');
-    return 'Review from ChatGPT: \n' + res.text;
+    
+    const text = res.text;
+    if (!text) {
+      return [];
+    }
+
+    console.info('response', text);
+
+    const jsonString = patch.substring(patch.indexOf('['), patch.length);
+    const jsonArray = JSON.parse(jsonString);
+    
+    return jsonArray;
   };
 }

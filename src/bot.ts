@@ -91,7 +91,6 @@ export const robot = (app: Probot) => {
       console.time('gpt cost');
 
       const description = pull_request.body || '';
-      let patches = '';
 
       for (let i = 0; i < changedFiles.length; i++) {
         const file = changedFiles[i];
@@ -105,29 +104,32 @@ export const robot = (app: Probot) => {
           continue;
         }
 
-        patches += `file path: ${file.filename}\n ${patch}\n`;
+        const res = await chat?.codeReview(description, patch);
+        for (const item of res) {
+          await context.octokit.pulls.createReviewComment({
+            repo: repo.repo,
+            owner: repo.owner,
+            pull_number: context.pullRequest().pull_number,
+            commit_id: commits[commits.length - 1].sha,
+            path: file.filename,
+            body: item.description,
+            start_line: item.startLine,
+            line: item.endLine,
+          });
+        }
       }
 
-      const res = await chat?.codeReview(description, patches);
+      // const res = await chat?.codeReview(description, patches);
 
-      if (!!res) {
-        // await context.octokit.pulls.createReviewComment({
-        //   repo: repo.repo,
-        //   owner: repo.owner,
-        //   pull_number: context.pullRequest().pull_number,
-        //   commit_id: commits[commits.length - 1].sha,
-        //   path: changedFiles[0].filename,
-        //   body: res,
-        //   position: (changedFiles[0].patch?.split('\n')?.length ?? 0) - 1,
-        // });
+      // if (!!res) {
 
-        await context.octokit.issues.createComment({
-          repo: repo.repo,
-          owner: repo.owner,
-          issue_number: context.pullRequest().pull_number,
-          body: res,
-        });
-      }
+      //   await context.octokit.issues.createComment({
+      //     repo: repo.repo,
+      //     owner: repo.owner,
+      //     issue_number: context.pullRequest().pull_number,
+      //     body: res,
+      //   });
+      // }
 
       console.timeEnd('gpt cost');
       console.info('successfully reviewed', context.payload.pull_request.html_url);
