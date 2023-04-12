@@ -25,9 +25,8 @@ export class Chat {
     Only provide feedback from the changed code in the patch file. 
     Only leave feedback related to the description, do not attempt to describe the task, 
     and do not do any disclaimers.
-    Please provide feedback specific to a code portion by specifying the file path, 
+    Please provide feedback specific to a code portion by specifying the file name, 
     as well as the exact start and end line number where the feedback occurs.
-    Provide only feedback where changes should be made.
     Please use bullet points for every feedback item`;
   };
 
