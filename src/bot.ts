@@ -111,14 +111,21 @@ export const robot = (app: Probot) => {
       const res = await chat?.codeReview(description, patches);
 
       if (!!res) {
-        await context.octokit.pulls.createReviewComment({
+        // await context.octokit.pulls.createReviewComment({
+        //   repo: repo.repo,
+        //   owner: repo.owner,
+        //   pull_number: context.pullRequest().pull_number,
+        //   commit_id: commits[commits.length - 1].sha,
+        //   path: changedFiles[0].filename,
+        //   body: res,
+        //   position: (changedFiles[0].patch?.split('\n')?.length ?? 0) - 1,
+        // });
+
+        await context.octokit.issues.createComment({
           repo: repo.repo,
           owner: repo.owner,
-          pull_number: context.pullRequest().pull_number,
-          commit_id: commits[commits.length - 1].sha,
-          path: changedFiles[0].filename,
+          issue_number: context.pullRequest().pull_number,
           body: res,
-          position: (changedFiles[0].patch?.split('\n')?.length ?? 0) - 1,
         });
       }
 
