@@ -15,19 +15,14 @@ export class Chat {
 
   private generatePrompt = (description: string, patch: string) => {
     return `
-    ###
     Please review a pull request with the following description:
     ${description}
-    ###
-    
+
     code:
     ${patch}
 
-    ###
     Please provide one paragraph describing whether the changes respect the description of the pull request.
     If you find any changes that should be made to the source code, provide them in the format of a json array with the following attributes: filePath, startLine, endLine, description.
-    Please take an extra careful look at the called function names as well as the variables, so that they don't contain typos and so that they make sense
-    ###
     `;
   };
 
