@@ -6,7 +6,7 @@ export class Chat {
     this.chatAPI = new ChatGPTAPI({
       apiKey: apikey,
       completionParams: {
-        model: process.env.MODEL || 'text-davinci-001',
+        model: process.env.MODEL || 'code-davinci-edit-001',
         temperature: +(process.env.temperature || 0) || 1,
         top_p: +(process.env.top_p || 0) || 1,
       },
