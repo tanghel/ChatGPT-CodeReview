@@ -18,7 +18,7 @@ export class Chat {
       ? `Answer me in ${process.env.LANGUAGE},`
       : '';
 
-    return `Bellow is the code patch, please help me do a brief code review,${answerLanguage} if any bug risk and improvement suggestion are welcome
+    return `Below is the code patch, please help me do a brief code review, ${answerLanguage} if any bug risk and improvement suggestion are welcome
     ${patch}
     `;
   };
@@ -34,6 +34,6 @@ export class Chat {
     const res = await this.chatAPI.sendMessage(prompt);
 
     console.timeEnd('code-review cost');
-    return res.text;
+    return 'Review from ChatGPT: ' + res.text;
   };
 }
