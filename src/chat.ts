@@ -46,7 +46,12 @@ export class Chat {
 
     console.info('response', text);
 
-    const jsonString = patch.substring(patch.indexOf('['), patch.length);
+    const pos = patch.indexOf('[');
+    if (pos < 0) {
+      return [];
+    }
+
+    const jsonString = patch.substring(pos, patch.length);
     const jsonArray = JSON.parse(jsonString);
     
     return jsonArray;
