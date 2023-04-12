@@ -116,9 +116,9 @@ export const robot = (app: Probot) => {
           owner: repo.owner,
           pull_number: context.pullRequest().pull_number,
           commit_id: commits[commits.length - 1].sha,
-          // path: file.filename,
+          path: changedFiles[0].filename,
           body: res,
-          // position: patch.split('\n').length - 1,
+          position: (changedFiles[0].patch?.split('\n')?.length ?? 0) - 1,
         });
       }
 
