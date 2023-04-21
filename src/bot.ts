@@ -125,6 +125,7 @@ export const robot = (app: Probot) => {
       const message = lastCommitSha;
       const signature = /[0-9a-fA-F]{128}/.exec(body)?.at(0);
 
+      console.info('pullrequest', pull_request);
       console.info('body', body);
       console.info('signature', signature);
 
