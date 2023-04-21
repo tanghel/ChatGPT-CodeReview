@@ -1,8 +1,7 @@
 import { Address, SignableMessage } from '@multiversx/sdk-core/out';
 import { UserPublicKey, UserVerifier } from '@multiversx/sdk-wallet/out';
 import { Probot } from 'probot';
-
-const MAX_PATCH_COUNT = 4000;
+import axios from 'axios';
 
 export const robot = (app: Probot) => {
   app.on(
@@ -14,11 +13,56 @@ export const robot = (app: Probot) => {
 
       async function createComment(body: string) {
         await context.octokit.issues.createComment({
-          repo: repo.repo,
-          owner: repo.owner,
+          repo: context.repo().repo,
+          owner: context.repo().owner,
           issue_number: context.pullRequest().pull_number,
           body,
         });
+      }
+
+      async function getInfoContents(files: {filename: string, raw_url: string}[]): Promise<{owners: string[]} | undefined> {
+        // we try to read the contents of the info.json file
+        const { data: infoFromMaster } = await axios.get(`https://raw.githubusercontent.com/multiversx/mx-assets/master/identities/${identity}/info.json`, { validateStatus: status => [200, 404].includes(status) });
+
+        if (infoFromMaster) {
+          return infoFromMaster;
+        }
+        
+        const infoJsonFile = files.find(x => x.filename.endsWith(`/${identity}/info.json`));
+        if (!infoJsonFile) {
+          return undefined;
+        }
+
+        const { data: infoFromPullRequest } = await axios.get(`https://raw.githubusercontent.com/multiversx/mx-assets/master/identities/${identity}/info.json`, { validateStatus: status => [200, 404].includes(status) });
+
+        return infoFromPullRequest;
+      }
+
+
+      async function getOwner(files: {filename: string, raw_url: string}[]): Promise<string | undefined> {
+        const info = await getInfoContents(files);
+        if (!info) {
+          return undefined;
+        }
+
+        const owners = info.owners;
+        if (!owners || !Array.isArray(owners) || owners.length === 0) {
+          return undefined;
+        }
+
+        const owner = owners[0];
+
+        return owner;
+      }
+
+      function getDistinctIdentities(fileNames: string[]) {
+        const regex = /^identities\/(.*?)\//;
+
+        const identities = fileNames
+          .map(x => regex.exec(x)?.at(1))
+          .filter(x => x);
+  
+        return [...new Set(identities)];
       }
 
       if (
@@ -26,7 +70,7 @@ export const robot = (app: Probot) => {
         pull_request.locked ||
         pull_request.draft
       ) {
-        return 'invalid event paylod';
+        return 'invalid event payload';
       }
 
       const data = await context.octokit.repos.compareCommits({
@@ -47,83 +91,24 @@ export const robot = (app: Probot) => {
         return 'no change';
       }
 
-      const regex = /^identities\/(.*?)\//;
-
-      const identities = changedFiles
-        .map(x => regex.exec(x.filename)?.at(1))
-        .filter(x => x);
-
-      console.info('identities', identities);
-
-      const distinctIdentities = new Set(identities);
-      if (distinctIdentities.size === 0) {
+      const distinctIdentities = getDistinctIdentities(changedFiles.map(x => x.filename));
+      if (distinctIdentities.length === 0) {
         console.info('no identity changed');
+        return;
       }
 
-      console.info('distinctIdentities', distinctIdentities);
-
-      if (distinctIdentities.size > 1) {
-        context.log.error(`Only one identity must be edited at a time. Edited identities: ${Array.from(distinctIdentities)}`);
+      if (distinctIdentities.length > 1) {
+        context.log.error(`Only one identity must be edited at a time. Edited identities: ${distinctIdentities}`);
         await createComment('Only one identity must be edited at a time');
         return;
       }
 
-      // extract all files within the identities folder that were edited
+      const identity = distinctIdentities[0];
+
+      const owner = await getOwner(changedFiles);
+
+      console.info('owner', owner);
       
-      // extract distinct identity names
-      // must be only one, otherwise error
-      // we try to read the contents of the info.json file
-
-      console.time('gpt cost');
-
-      // @ts-ignore
-      const description = pull_request.body || '';
-
-      for (let i = 0; i < changedFiles.length; i++) {
-        const file = changedFiles[i];
-        const patch = file.patch || '';
-
-        if(file.status !== 'modified' && file.status !== 'added') {
-          continue;
-        }
-
-        if (!patch || patch.length > MAX_PATCH_COUNT) {
-          continue;
-        }
-
-        // const res = await chat?.codeReview(description, patch);
-        // for (const item of res) {
-        //   await context.octokit.pulls.createReviewComment({
-        //     repo: repo.repo,
-        //     owner: repo.owner,
-        //     pull_number: context.pullRequest().pull_number,
-        //     commit_id: commits[commits.length - 1].sha,
-        //     path: file.filename,
-        //     body: item.description,
-        //     start_line: item.startLine,
-        //     line: item.endLine,
-        //   });
-        // }
-      }
-
-      // const res = await chat?.codeReview(description, patches);
-
-      // if (!!res) {
-
-      //   await context.octokit.issues.createComment({
-      //     repo: repo.repo,
-      //     owner: repo.owner,
-      //     issue_number: context.pullRequest().pull_number,
-      //     body: res,
-      //   });
-      // }
-
-      await context.octokit.issues.createComment({
-        repo: repo.repo,
-        owner: repo.owner,
-        issue_number: context.pullRequest().pull_number,
-        body: 'Hello World!',
-      });
 
       const address = 'erd1qnk2vmuqywfqtdnkmauvpm8ls0xh00k8xeupuaf6cm6cd4rx89qqz0ppgl';
       const message = 'erd1qnk2vmuqywfqtdnkmauvpm8ls0xh00k8xeupuaf6cm6cd4rx89qqz0ppglaHR0cHM6Ly90ZXN0bmV0LXdhbGxldC5tdWx0aXZlcnN4LmNvbQ.6360ab74d66df93189ab5e1e63a16441b88dd7a6372c7a360f62e9a39b362471.86400.e30{}';
@@ -144,7 +129,6 @@ export const robot = (app: Probot) => {
       console.info('signable message', signableMessage.serializeForSigning().toString('hex'));
       console.info('valid', valid);
 
-      console.timeEnd('gpt cost');
       console.info('successfully reviewed', context.payload.pull_request.html_url);
 
       console.error('throwing error');
