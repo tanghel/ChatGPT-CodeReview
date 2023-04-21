@@ -105,7 +105,11 @@ export const robot = (app: Probot) => {
 
       const identity = distinctIdentities[0];
 
-      const owner = await getOwner(changedFiles);
+      let owner = await getOwner(changedFiles);
+      if (new Address(owner).isContractAddress()) {
+        const ownerResult = await axios.get(`https://next-api.multiversx.com/accounts/${owner}?extract=ownerAddress`);
+        owner = ownerResult.data;
+      }
 
       console.info('owner', owner);
       
