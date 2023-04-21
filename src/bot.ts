@@ -152,10 +152,26 @@ export const robot = (app: Probot) => {
       let valid = verifier.verify(signableMessage.serializeForSigning(), Buffer.from(signature, 'hex'));
       if (!valid) {
         await createComment(`The provided signature is invalid. Please provide a signature for the latest commit sha: \`${lastCommitSha}\` which must be signed with the owner wallet address \`${address}\``);
+        await context.octokit.issues.lock({
+          repo: context.repo().repo,
+          owner: context.repo().owner,
+          issue_number: context.pullRequest().pull_number,
+          lock_reason: 'resolved'
+        });
         return;
       } else {
         await createComment(`Signature OK. Verified that the latest commit hash \`${lastCommitSha}\` was signed using the wallet address \`${address}\` using the signature \`${signature}\``);
+
+        if (pull_request.locked) {
+          await context.octokit.issues.unlock({
+            repo: context.repo().repo,
+            owner: context.repo().owner,
+            issue_number: context.pullRequest().pull_number,
+            lock_reason: 'resolved'
+          });
+        }
       }
+
 
       console.info('payload', context.payload);
       console.info('successfully reviewed', context.payload.pull_request.html_url);
