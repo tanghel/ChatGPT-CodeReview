@@ -38,6 +38,7 @@ export const robot = (app: Probot) => {
         const { data: infoFromPullRequest } = await axios.get(infoJsonFile.raw_url);
 
         console.info('info from pull request', infoFromPullRequest);
+        console.info('raw url', infoJsonFile.raw_url);
         return infoFromPullRequest;
       }
 
