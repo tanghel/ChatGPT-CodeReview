@@ -148,6 +148,9 @@ export const robot = (app: Probot) => {
       console.timeEnd('gpt cost');
       console.info('successfully reviewed', context.payload.pull_request.html_url);
 
+      console.error('throwing error');
+      throw new Error('hello world');
+
       return 'error';
     }
   );
