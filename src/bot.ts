@@ -66,7 +66,7 @@ export const robot = (app: Probot) => {
 
 
       if (distinctIdentities.size > 1) {
-        return 'you must only change one identity';
+        throw new Error('You must only change one identity');
       }
 
       // extract all files within the identities folder that were edited
