@@ -1,17 +1,17 @@
 {
-  "name": "cr-bot",
+  "name": "assets-identities-signature-validator",
   "version": "1.0.0",
   "private": true,
-  "description": "A Probot app",
-  "author": "anc95",
+  "description": "Signature validation for MultiversX Identities in the mx-assets repository",
+  "author": "MultiversX",
   "license": "ISC",
   "type": "module",
-  "homepage": "https://github.com//",
+  "homepage": "https://github.com",
   "keywords": [
     "probot",
     "github",
     "probot-app",
-    "code review"
+    "multiversx"
   ],
   "scripts": {
     "start": "node -r dotenv/config ./dist/index.js",
