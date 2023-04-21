@@ -151,7 +151,7 @@ export const robot = (app: Probot) => {
       const verifier = new UserVerifier(publicKey);
       let valid = verifier.verify(signableMessage.serializeForSigning(), Buffer.from(signature, 'hex'));
       if (!valid) {
-        await createComment(`The provided signature is invalid`);
+        await createComment(`The provided signature is invalid. Please provide a signature for the latest commit sha: \`${lastCommitSha}\` which must be signed with the owner wallet address \`${address}\``);
         return;
       } else {
         await createComment('Signature OK');
