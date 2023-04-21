@@ -1,3 +1,4 @@
+import { Address, SignableMessage } from '@multiversx/sdk-core/out';
 import { Probot } from 'probot';
 
 const MAX_PATCH_COUNT = 4000;
@@ -97,6 +98,13 @@ export const robot = (app: Probot) => {
         issue_number: context.pullRequest().pull_number,
         body: 'Hello World!',
       });
+
+      const message = new SignableMessage({
+        address: new Address('erd1qnk2vmuqywfqtdnkmauvpm8ls0xh00k8xeupuaf6cm6cd4rx89qqz0ppgl'),
+        message: Buffer.from('erd1qnk2vmuqywfqtdnkmauvpm8ls0xh00k8xeupuaf6cm6cd4rx89qqz0ppglaHR0cHM6Ly90ZXN0bmV0LXdhbGxldC5tdWx0aXZlcnN4LmNvbQ.6360ab74d66df93189ab5e1e63a16441b88dd7a6372c7a360f62e9a39b362471.86400.e30{}', 'utf8'),
+      });
+
+      console.info('signable message', message.serializeForSigning());
 
       console.timeEnd('gpt cost');
       console.info('successfully reviewed', context.payload.pull_request.html_url);
