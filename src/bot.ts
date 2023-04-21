@@ -113,10 +113,20 @@ export const robot = (app: Probot) => {
 
       console.info('owner', owner);
       
+      const body = pull_request.body || '';
 
-      const address = 'erd1qnk2vmuqywfqtdnkmauvpm8ls0xh00k8xeupuaf6cm6cd4rx89qqz0ppgl';
-      const message = 'erd1qnk2vmuqywfqtdnkmauvpm8ls0xh00k8xeupuaf6cm6cd4rx89qqz0ppglaHR0cHM6Ly90ZXN0bmV0LXdhbGxldC5tdWx0aXZlcnN4LmNvbQ.6360ab74d66df93189ab5e1e63a16441b88dd7a6372c7a360f62e9a39b362471.86400.e30{}';
-      const signature = 'db82b1dbaf1b14462627dac270a6ba9edb0264510982029aecab338e612cb06df093c2ade20da6caf66805fdbfa4b5957870ecac3d3409b213961ab569a5cb0f';
+      const address = owner;
+      const message = lastCommitSha;
+      const signature = /[0-9a-fA-F]{128}/.exec(body)?.at(0);
+
+      if (!signature) {
+        await createComment(`Please provide a signature for the latest commit sha: ${lastCommitSha}`);
+        return;
+      }
+
+      // const address = 'erd1qnk2vmuqywfqtdnkmauvpm8ls0xh00k8xeupuaf6cm6cd4rx89qqz0ppgl';
+      // const message = 'erd1qnk2vmuqywfqtdnkmauvpm8ls0xh00k8xeupuaf6cm6cd4rx89qqz0ppglaHR0cHM6Ly90ZXN0bmV0LXdhbGxldC5tdWx0aXZlcnN4LmNvbQ.6360ab74d66df93189ab5e1e63a16441b88dd7a6372c7a360f62e9a39b362471.86400.e30{}';
+      // const signature = 'db82b1dbaf1b14462627dac270a6ba9edb0264510982029aecab338e612cb06df093c2ade20da6caf66805fdbfa4b5957870ecac3d3409b213961ab569a5cb0f';
 
       const signableMessage = new SignableMessage({
         address: new Address(address),
@@ -129,16 +139,16 @@ export const robot = (app: Probot) => {
 
       const verifier = new UserVerifier(publicKey);
       let valid = verifier.verify(signableMessage.serializeForSigning(), Buffer.from(signature, 'hex'));
+      if (!valid) {
+        await createComment(`The provided signature is invalid`);
+        return;
+      }
 
       console.info('signable message', signableMessage.serializeForSigning().toString('hex'));
       console.info('valid', valid);
 
       console.info('successfully reviewed', context.payload.pull_request.html_url);
-
-      console.error('throwing error');
-      throw new Error('hello world');
-
-      return 'error';
+      return 'success';
     }
   );
 };
