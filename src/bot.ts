@@ -125,8 +125,11 @@ export const robot = (app: Probot) => {
       const message = lastCommitSha;
       const signature = /[0-9a-fA-F]{128}/.exec(body)?.at(0);
 
+      console.info('body', body);
+      console.info('signature', signature);
+
       if (!signature) {
-        await createComment(`Please provide a signature for the latest commit sha: \`${lastCommitSha}\` which must be signed with the owner wallet address ${address}`);
+        await createComment(`Please provide a signature for the latest commit sha: \`${lastCommitSha}\` which must be signed with the owner wallet address \`${address}\``);
         return;
       }
 
