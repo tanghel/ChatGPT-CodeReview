@@ -25,20 +25,16 @@ export const robot = (app: Probot) => {
         const { data: infoFromMaster } = await axios.get(`https://raw.githubusercontent.com/multiversx/mx-assets/master/identities/${identity}/info.json`, { validateStatus: status => [200, 404].includes(status) });
 
         if (infoFromMaster && typeof infoFromMaster === 'object' && infoFromMaster['owners']) {
-          console.info('info from master', infoFromMaster);
           return infoFromMaster;
         }
         
         const infoJsonFile = files.find(x => x.filename.endsWith(`/${identity}/info.json`));
         if (!infoJsonFile) {
-          console.info('info.json file not found in changed files');
           return undefined;
         }
 
         const { data: infoFromPullRequest } = await axios.get(infoJsonFile.raw_url);
 
-        console.info('info from pull request', infoFromPullRequest);
-        console.info('raw url', infoJsonFile.raw_url);
         return infoFromPullRequest;
       }
 
@@ -46,13 +42,11 @@ export const robot = (app: Probot) => {
       async function getOwner(files: {filename: string, raw_url: string}[]): Promise<string | undefined> {
         const info = await getInfoContents(files);
         if (!info) {
-          console.info('no info returned');
           return undefined;
         }
 
         const owners = info.owners;
         if (!owners || !Array.isArray(owners) || owners.length === 0) {
-          console.info('owners not identified');
           return undefined;
         }
 
@@ -90,20 +84,16 @@ export const robot = (app: Probot) => {
 
       const lastCommitSha = commits[commits.length - 1].sha;
 
-      console.info('lastCommitSha', lastCommitSha);
-
       if (!changedFiles?.length) {
         return 'no change';
       }
 
       const distinctIdentities = getDistinctIdentities(changedFiles.map(x => x.filename));
       if (distinctIdentities.length === 0) {
-        console.info('no identity changed');
         return;
       }
 
       if (distinctIdentities.length > 1) {
-        context.log.error(`Only one identity must be edited at a time. Edited identities: ${distinctIdentities}`);
         await createComment('Only one identity must be edited at a time');
         return;
       }
@@ -111,14 +101,11 @@ export const robot = (app: Probot) => {
       const identity = distinctIdentities[0];
 
       let owner = await getOwner(changedFiles);
-      console.info('initial owner', owner);
       if (new Address(owner).isContractAddress()) {
         const ownerResult = await axios.get(`https://next-api.multiversx.com/accounts/${owner}?extract=ownerAddress`);
         owner = ownerResult.data;
       }
 
-      console.info('owner', owner);
-      
       const { data: pullRequestData } = await axios.get(pull_request.url);
       const body = pullRequestData.body || '';
 
@@ -126,18 +113,10 @@ export const robot = (app: Probot) => {
       const message = lastCommitSha;
       const signature = /[0-9a-fA-F]{128}/.exec(body)?.at(0);
 
-      console.info('pullrequest', pull_request);
-      console.info('body', body);
-      console.info('signature', signature);
-
       if (!signature) {
         await createComment(`Please provide a signature for the latest commit sha: \`${lastCommitSha}\` which must be signed with the owner wallet address \`${address}\``);
         return;
       }
-
-      // const address = 'erd1qnk2vmuqywfqtdnkmauvpm8ls0xh00k8xeupuaf6cm6cd4rx89qqz0ppgl';
-      // const message = 'erd1qnk2vmuqywfqtdnkmauvpm8ls0xh00k8xeupuaf6cm6cd4rx89qqz0ppglaHR0cHM6Ly90ZXN0bmV0LXdhbGxldC5tdWx0aXZlcnN4LmNvbQ.6360ab74d66df93189ab5e1e63a16441b88dd7a6372c7a360f62e9a39b362471.86400.e30{}';
-      // const signature = 'db82b1dbaf1b14462627dac270a6ba9edb0264510982029aecab338e612cb06df093c2ade20da6caf66805fdbfa4b5957870ecac3d3409b213961ab569a5cb0f';
 
       const signableMessage = new SignableMessage({
         address: new Address(address),
@@ -157,7 +136,6 @@ export const robot = (app: Probot) => {
         await createComment(`Signature OK. Verified that the latest commit hash \`${lastCommitSha}\` was signed using the wallet address \`${address}\` using the signature \`${signature}\``);
       }
 
-      console.info('payload', context.payload);
       console.info('successfully reviewed', context.payload.pull_request.html_url);
       return 'success';
     }
