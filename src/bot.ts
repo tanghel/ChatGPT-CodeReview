@@ -24,7 +24,7 @@ export const robot = (app: Probot) => {
         // we try to read the contents of the info.json file
         const { data: infoFromMaster } = await axios.get(`https://raw.githubusercontent.com/multiversx/mx-assets/master/identities/${identity}/info.json`, { validateStatus: status => [200, 404].includes(status) });
 
-        if (infoFromMaster) {
+        if (infoFromMaster && typeof infoFromMaster === 'object' && infoFromMaster['owners']) {
           console.info('info from master', infoFromMaster);
           return infoFromMaster;
         }
@@ -78,7 +78,7 @@ export const robot = (app: Probot) => {
         return 'invalid event payload';
       }
 
-      const data = await context.octokit.repos.compareCommits({
+      const data = await context.octokit.repos. compareCommits({
         owner: repo.owner,
         repo: repo.repo,
         base: context.payload.pull_request.base.sha,
@@ -90,7 +90,6 @@ export const robot = (app: Probot) => {
       const lastCommitSha = commits[commits.length - 1].sha;
 
       console.info('lastCommitSha', lastCommitSha);
-      console.info('changedFiles', changedFiles);
 
       if (!changedFiles?.length) {
         return 'no change';
