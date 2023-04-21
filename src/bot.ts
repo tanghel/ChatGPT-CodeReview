@@ -40,21 +40,10 @@ export const robot = (app: Probot) => {
 
       let { files: changedFiles, commits } = data.data;
 
-      if (context.payload.action === 'synchronize' && commits.length >= 2) {
-        const {
-          data: { files },
-        } = await context.octokit.repos.compareCommits({
-          owner: repo.owner,
-          repo: repo.repo,
-          base: commits[commits.length - 2].sha,
-          head: commits[commits.length - 1].sha,
-        });
+      const lastCommitSha = commits[commits.length - 1].sha;
 
-        const filesNames = files?.map((file) => file.filename) || [];
-        changedFiles = changedFiles?.filter((file) =>
-          filesNames.includes(file.filename)
-        );
-      }
+      console.info('lastCommitSha', lastCommitSha);
+      console.info('changedFiles', changedFiles);
 
       if (!changedFiles?.length) {
         return 'no change';
