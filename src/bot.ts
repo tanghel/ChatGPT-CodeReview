@@ -1,7 +1,19 @@
 import { Address, SignableMessage } from '@multiversx/sdk-core/out';
+import { UserPublicKey, UserVerifier } from '@multiversx/sdk-wallet/out';
 import { Probot } from 'probot';
 
 const MAX_PATCH_COUNT = 4000;
+
+import { ISignature } from "@multiversx/sdk-core";
+
+export class NativeAuthSignature implements ISignature {
+  constructor(private readonly signature: string) { }
+
+  hex(): string {
+    return this.signature;
+  }
+}
+
 
 export const robot = (app: Probot) => {
   app.on(
@@ -99,12 +111,24 @@ export const robot = (app: Probot) => {
         body: 'Hello World!',
       });
 
-      const message = new SignableMessage({
-        address: new Address('erd1qnk2vmuqywfqtdnkmauvpm8ls0xh00k8xeupuaf6cm6cd4rx89qqz0ppgl'),
-        message: Buffer.from('erd1qnk2vmuqywfqtdnkmauvpm8ls0xh00k8xeupuaf6cm6cd4rx89qqz0ppglaHR0cHM6Ly90ZXN0bmV0LXdhbGxldC5tdWx0aXZlcnN4LmNvbQ.6360ab74d66df93189ab5e1e63a16441b88dd7a6372c7a360f62e9a39b362471.86400.e30{}', 'utf8'),
+      const address = 'erd1qnk2vmuqywfqtdnkmauvpm8ls0xh00k8xeupuaf6cm6cd4rx89qqz0ppgl';
+      const message = 'erd1qnk2vmuqywfqtdnkmauvpm8ls0xh00k8xeupuaf6cm6cd4rx89qqz0ppglaHR0cHM6Ly90ZXN0bmV0LXdhbGxldC5tdWx0aXZlcnN4LmNvbQ.6360ab74d66df93189ab5e1e63a16441b88dd7a6372c7a360f62e9a39b362471.86400.e30{}';
+      const signature = 'db82b1dbaf1b14462627dac270a6ba9edb0264510982029aecab338e612cb06df093c2ade20da6caf66805fdbfa4b5957870ecac3d3409b213961ab569a5cb0f';
+
+      const signableMessage = new SignableMessage({
+        address: new Address(address),
+        message: Buffer.from(message, 'utf8'),
       });
 
-      console.info('signable message', message.serializeForSigning());
+      const publicKey = new UserPublicKey(
+        new Address(address).pubkey(),
+      );
+
+      const verifier = new UserVerifier(publicKey);
+      let valid = verifier.verify(signableMessage.serializeForSigning(), Buffer.from(signature, 'hex'));
+
+      console.info('signable message', signableMessage.serializeForSigning().toString('hex'));
+      console.info('valid', valid);
 
       console.timeEnd('gpt cost');
       console.info('successfully reviewed', context.payload.pull_request.html_url);
