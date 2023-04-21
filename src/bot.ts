@@ -49,6 +49,32 @@ export const robot = (app: Probot) => {
         return 'no change';
       }
 
+      const regex = /^identities\/(.*?)\//;
+
+      const identities = changedFiles
+        .map(x => regex.exec(x.filename)?.at(1))
+        .filter(x => x);
+
+      console.info('identities', identities);
+
+      const distinctIdentities = new Set(identities);
+      if (distinctIdentities.size === 0) {
+        return 'no identity changed';
+      }
+
+      console.info('distinctIdentities', distinctIdentities);
+
+
+      if (distinctIdentities.size > 1) {
+        return 'you must only change one identity';
+      }
+
+      // extract all files within the identities folder that were edited
+      
+      // extract distinct identity names
+      // must be only one, otherwise error
+      // we try to read the contents of the 
+
       console.time('gpt cost');
 
       // @ts-ignore
