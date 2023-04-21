@@ -154,7 +154,7 @@ export const robot = (app: Probot) => {
         await createComment(`The provided signature is invalid. Please provide a signature for the latest commit sha: \`${lastCommitSha}\` which must be signed with the owner wallet address \`${address}\``);
         return;
       } else {
-        await createComment('Signature OK');
+        await createComment(`Signature OK. Verified that the latest commit hash \`${lastCommitSha}\` was signed using the wallet address \`${address}\` using the signature \`${signature}\``);
       }
 
       console.info('successfully reviewed', context.payload.pull_request.html_url);
