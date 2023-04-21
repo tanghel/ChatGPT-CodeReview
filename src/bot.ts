@@ -5,11 +5,9 @@ import axios from 'axios';
 
 export const robot = (app: Probot) => {
   app.on(
-    ['pull_request.opened', 'pull_request.synchronize'],
+    ['pull_request.opened', 'pull_request.synchronize', 'issue_comment.created'],
     async (context) => {
       const repo = context.repo();
-
-      const pull_request = context.payload.pull_request;
 
       async function createComment(body: string) {
         await context.octokit.issues.createComment({
@@ -70,19 +68,18 @@ export const robot = (app: Probot) => {
         process.exit(1);
       }
 
-      if (
-        pull_request.state === 'closed' ||
-        pull_request.locked ||
-        pull_request.draft
-      ) {
+      const { data: pullRequest } = await axios.get(`https://api.github.com/repos/multiversx/mx-assets/pulls/${context.pullRequest().pull_number}`);
+      const state = pullRequest.state;
+
+      if (state === 'closed' || state === 'locked' || state === 'draft') {
         return 'invalid event payload';
       }
 
       const data = await context.octokit.repos. compareCommits({
         owner: repo.owner,
         repo: repo.repo,
-        base: context.payload.pull_request.base.sha,
-        head: context.payload.pull_request.head.sha,
+        base: pullRequest.base.sha,
+        head: pullRequest.head.sha,
       });
 
       let { files: changedFiles, commits } = data.data;
@@ -111,8 +108,7 @@ export const robot = (app: Probot) => {
         owner = ownerResult.data;
       }
 
-      const { data: pullRequestData } = await axios.get(pull_request.url);
-      const body = pullRequestData.body || '';
+      const body = pullRequest.body || '';
 
       const address = owner;
       const message = lastCommitSha;
@@ -141,7 +137,7 @@ export const robot = (app: Probot) => {
         await createComment(`Signature OK. Verified that the latest commit hash \`${lastCommitSha}\` was signed using the wallet address \`${address}\` using the signature \`${signature}\``);
       }
 
-      console.info('successfully reviewed', context.payload.pull_request.html_url);
+      console.info('successfully reviewed', pullRequest.html_url);
       return 'success';
     }
   );
