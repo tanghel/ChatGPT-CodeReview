@@ -4,17 +4,6 @@ import { Probot } from 'probot';
 
 const MAX_PATCH_COUNT = 4000;
 
-import { ISignature } from "@multiversx/sdk-core";
-
-export class NativeAuthSignature implements ISignature {
-  constructor(private readonly signature: string) { }
-
-  hex(): string {
-    return this.signature;
-  }
-}
-
-
 export const robot = (app: Probot) => {
   app.on(
     ['pull_request.opened', 'pull_request.synchronize'],
@@ -22,6 +11,15 @@ export const robot = (app: Probot) => {
       const repo = context.repo();
 
       const pull_request = context.payload.pull_request;
+
+      async function createComment(body: string) {
+        await context.octokit.issues.createComment({
+          repo: repo.repo,
+          owner: repo.owner,
+          issue_number: context.pullRequest().pull_number,
+          body,
+        });
+      }
 
       if (
         pull_request.state === 'closed' ||
@@ -59,21 +57,22 @@ export const robot = (app: Probot) => {
 
       const distinctIdentities = new Set(identities);
       if (distinctIdentities.size === 0) {
-        return 'no identity changed';
+        console.info('no identity changed');
       }
 
       console.info('distinctIdentities', distinctIdentities);
 
-
       if (distinctIdentities.size > 1) {
-        context.log.error('You must only change one identity');
+        context.log.error(`Only one identity must be edited at a time. Edited identities: ${Array.from(distinctIdentities)}`);
+        await createComment('Only one identity must be edited at a time');
+        return;
       }
 
       // extract all files within the identities folder that were edited
       
       // extract distinct identity names
       // must be only one, otherwise error
-      // we try to read the contents of the 
+      // we try to read the contents of the info.json file
 
       console.time('gpt cost');
 
