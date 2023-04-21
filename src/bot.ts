@@ -25,16 +25,19 @@ export const robot = (app: Probot) => {
         const { data: infoFromMaster } = await axios.get(`https://raw.githubusercontent.com/multiversx/mx-assets/master/identities/${identity}/info.json`, { validateStatus: status => [200, 404].includes(status) });
 
         if (infoFromMaster) {
+          console.info('info from master', infoFromMaster);
           return infoFromMaster;
         }
         
         const infoJsonFile = files.find(x => x.filename.endsWith(`/${identity}/info.json`));
         if (!infoJsonFile) {
+          console.info('info.json file not found in changed files');
           return undefined;
         }
 
         const { data: infoFromPullRequest } = await axios.get(`https://raw.githubusercontent.com/multiversx/mx-assets/master/identities/${identity}/info.json`, { validateStatus: status => [200, 404].includes(status) });
 
+        console.info('info from pull request', infoFromPullRequest);
         return infoFromPullRequest;
       }
 
@@ -42,11 +45,13 @@ export const robot = (app: Probot) => {
       async function getOwner(files: {filename: string, raw_url: string}[]): Promise<string | undefined> {
         const info = await getInfoContents(files);
         if (!info) {
+          console.info('no info returned');
           return undefined;
         }
 
         const owners = info.owners;
         if (!owners || !Array.isArray(owners) || owners.length === 0) {
+          console.info('owners not identified');
           return undefined;
         }
 
@@ -106,6 +111,7 @@ export const robot = (app: Probot) => {
       const identity = distinctIdentities[0];
 
       let owner = await getOwner(changedFiles);
+      console.info('initial owner', owner);
       if (new Address(owner).isContractAddress()) {
         const ownerResult = await axios.get(`https://next-api.multiversx.com/accounts/${owner}?extract=ownerAddress`);
         owner = ownerResult.data;
