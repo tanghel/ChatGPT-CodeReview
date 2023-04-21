@@ -35,7 +35,7 @@ export const robot = (app: Probot) => {
           return undefined;
         }
 
-        const { data: infoFromPullRequest } = await axios.get(`https://raw.githubusercontent.com/multiversx/mx-assets/master/identities/${identity}/info.json`, { validateStatus: status => [200, 404].includes(status) });
+        const { data: infoFromPullRequest } = await axios.get(infoJsonFile.raw_url);
 
         console.info('info from pull request', infoFromPullRequest);
         return infoFromPullRequest;
