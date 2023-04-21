@@ -153,10 +153,9 @@ export const robot = (app: Probot) => {
       if (!valid) {
         await createComment(`The provided signature is invalid`);
         return;
+      } else {
+        await createComment('Signature OK');
       }
-
-      console.info('signable message', signableMessage.serializeForSigning().toString('hex'));
-      console.info('valid', valid);
 
       console.info('successfully reviewed', context.payload.pull_request.html_url);
       return 'success';
