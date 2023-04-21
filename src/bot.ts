@@ -66,7 +66,8 @@ export const robot = (app: Probot) => {
       }
 
       function fail(reason: string) {
-        new Promise(() => { throw new Error(reason); });
+        console.error(reason);
+        process.exit(1);
       }
 
       if (
