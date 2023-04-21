@@ -119,7 +119,8 @@ export const robot = (app: Probot) => {
 
       console.info('owner', owner);
       
-      const body = pull_request.body || '';
+      const { data: pullRequestData } = await axios.get(pull_request.url);
+      const body = pullRequestData.body || '';
 
       const address = owner;
       const message = lastCommitSha;
