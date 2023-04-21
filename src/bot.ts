@@ -63,7 +63,8 @@ export const robot = (app: Probot) => {
         return [...new Set(identities)];
       }
 
-      function fail(reason: string) {
+      async function fail(reason: string) {
+        await createComment(reason);
         console.error(reason);
         process.exit(1);
       }
@@ -96,7 +97,7 @@ export const robot = (app: Probot) => {
       }
 
       if (distinctIdentities.length > 1) {
-        fail('Only one identity must be edited at a time');
+        await fail('Only one identity must be edited at a time');
         return;
       }
 
@@ -115,7 +116,7 @@ export const robot = (app: Probot) => {
       const signature = /[0-9a-fA-F]{128}/.exec(body)?.at(0);
 
       if (!signature) {
-        fail(`Please provide a signature for the latest commit sha: \`${lastCommitSha}\` which must be signed with the owner wallet address \`${address}\``);
+        await fail(`Please provide a signature for the latest commit sha: \`${lastCommitSha}\` which must be signed with the owner wallet address \`${address}\``);
         return;
       }
 
@@ -131,7 +132,7 @@ export const robot = (app: Probot) => {
       const verifier = new UserVerifier(publicKey);
       let valid = verifier.verify(signableMessage.serializeForSigning(), Buffer.from(signature, 'hex'));
       if (!valid) {
-        fail(`The provided signature is invalid. Please provide a signature for the latest commit sha: \`${lastCommitSha}\` which must be signed with the owner wallet address \`${address}\``);
+        await fail(`The provided signature is invalid. Please provide a signature for the latest commit sha: \`${lastCommitSha}\` which must be signed with the owner wallet address \`${address}\``);
         return;
       } else {
         await createComment(`Signature OK. Verified that the latest commit hash \`${lastCommitSha}\` was signed using the wallet address \`${address}\` using the signature \`${signature}\``);
