@@ -65,6 +65,10 @@ export const robot = (app: Probot) => {
         return [...new Set(identities)];
       }
 
+      function fail(reason: string) {
+        new Promise(() => { throw new Error(reason); });
+      }
+
       if (
         pull_request.state === 'closed' ||
         pull_request.locked ||
@@ -94,7 +98,7 @@ export const robot = (app: Probot) => {
       }
 
       if (distinctIdentities.length > 1) {
-        await createComment('Only one identity must be edited at a time');
+        fail('Only one identity must be edited at a time');
         return;
       }
 
@@ -114,7 +118,7 @@ export const robot = (app: Probot) => {
       const signature = /[0-9a-fA-F]{128}/.exec(body)?.at(0);
 
       if (!signature) {
-        await createComment(`Please provide a signature for the latest commit sha: \`${lastCommitSha}\` which must be signed with the owner wallet address \`${address}\``);
+        fail(`Please provide a signature for the latest commit sha: \`${lastCommitSha}\` which must be signed with the owner wallet address \`${address}\``);
         return;
       }
 
@@ -130,13 +134,11 @@ export const robot = (app: Probot) => {
       const verifier = new UserVerifier(publicKey);
       let valid = verifier.verify(signableMessage.serializeForSigning(), Buffer.from(signature, 'hex'));
       if (!valid) {
-        await createComment(`The provided signature is invalid. Please provide a signature for the latest commit sha: \`${lastCommitSha}\` which must be signed with the owner wallet address \`${address}\``);
+        fail(`The provided signature is invalid. Please provide a signature for the latest commit sha: \`${lastCommitSha}\` which must be signed with the owner wallet address \`${address}\``);
         return;
       } else {
         await createComment(`Signature OK. Verified that the latest commit hash \`${lastCommitSha}\` was signed using the wallet address \`${address}\` using the signature \`${signature}\``);
       }
-
-      new Promise(() => { throw new Error('test'); });
 
       console.info('successfully reviewed', context.payload.pull_request.html_url);
       return 'success';
